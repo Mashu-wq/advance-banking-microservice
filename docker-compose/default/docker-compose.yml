@@ -1,0 +1,47 @@
+services:
+  configserver:
+    image: "zer008/configserver:v6"
+    container_name: configserver-ms
+    ports:
+      - "8071:8071"
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+    networks:
+      - zer008
+  account:
+    image: "zer008/account:v6"
+    container_name: account-ms
+    ports:
+      - "9999:9999"
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+    networks:
+      - zer008
+    environment:
+      SPRING_APPLICATION_NAME: "account"
+      SPRING_CONFIG_IMPORT: "configserver:http//configserver:8071/"
+      SPRING_PROFILES_ACTIVE: default
+
+  cards:
+    image: "zer008/cards:v6"
+    container_name: cards-ms
+    ports:
+      - "8888:8888"
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+    networks:
+      - zer008
+    environment:
+      SPRING_APPLICATION_NAME: "cards"
+      SPRING_CONFIG_IMPORT: "configserver:http//configserver:8071/"
+      SPRING_PROFILES_ACTIVE: default
+
+networks:
+  zer008:
+    driver: "bridge"
