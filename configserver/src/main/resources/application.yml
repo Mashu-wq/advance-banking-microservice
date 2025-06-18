@@ -1,15 +1,27 @@
-sever:
+server:
   port: 8071
 spring:
   application:
-    name: "configserver"
+    name: configserver
   profiles:
-    active: native
+    active: git
   cloud:
     config:
       server:
-        native:
-          search-locations: "classpath:/config"
+        git:
+          uri: https://github.com/Mashu-wq/advance-banking-microservice
+          search-paths: configserver
+          default-label: main
+          clone-on-start: true
+          force-pull: true
+          timeout: 5
+
+  rabbitmq:
+    host: "localhost"
+    port: 5672
+    username: "guest"
+    password: "guest"
+
 management:
   endpoints:
     web:

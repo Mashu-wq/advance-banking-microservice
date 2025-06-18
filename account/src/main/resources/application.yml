@@ -1,25 +1,26 @@
 server:
   port: 8081
+
 spring:
   application:
-    name: "account"
+    name: account  # Should match the name of your config files: account.yml, account-prod.yml
   profiles:
-    active: "prod"
+    active: prod   # Will load account-prod.yml from config server
+  config:
+    import: optional:configserver:http://localhost:8071
+
   datasource:
     url: jdbc:h2:mem:testdb
     driverClassName: org.h2.Driver
     username: sa
     password: ''
+
   h2:
     console:
-    enabled: true
+      enabled: true
+
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: update
     show-sql: true
-  config:
-    import: "optional:configserver:http://localhost:8071/"
-
-
-

@@ -1,47 +1,129 @@
+#services:
+#  configserver:
+#    image: "zer008/configserver:v6"
+#    container_name: configserver-ms
+#    ports:
+#      - "8071:8071"
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 700m
+#    networks:
+#      - zer008
+#  account:
+#    image: "zer008/account:v6"
+#    container_name: account-ms
+#    ports:
+#      - "9999:9999"
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 700m
+#    networks:
+#      - zer008
+#    environment:
+#      SPRING_APPLICATION_NAME: "account"
+#      SPRING_CONFIG_IMPORT: "configserver:http//configserver:8071/"
+#      SPRING_PROFILES_ACTIVE: default
+#
+#  cards:
+#    image: "zer008/cards:v6"
+#    container_name: cards-ms
+#    ports:
+#      - "8888:8888"
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 700m
+#    networks:
+#      - zer008
+#    environment:
+#      SPRING_APPLICATION_NAME: "cards"
+#      SPRING_CONFIG_IMPORT: "configserver:http//configserver:8071/"
+#      SPRING_PROFILES_ACTIVE: default
+#
+#networks:
+#  zer008:
+#    driver: "bridge"
+
+
 services:
+  rabbit:
+    image: rabbitmq:3.13-management
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
   configserver:
     image: "zer008/configserver:v6"
     container_name: configserver-ms
     ports:
       - "8071:8071"
-    deploy:
-      resources:
-        limits:
-          memory: 700m
-    networks:
-      - zer008
-  account:
+    depends_on:
+      rabbit:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8071/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    extends:
+      file: common-config.yml
+      service: microservice-base-config
+
+  accounts:
     image: "zer008/account:v6"
     container_name: account-ms
     ports:
       - "9999:9999"
-    deploy:
-      resources:
-        limits:
-          memory: 700m
-    networks:
-      - zer008
+    depends_on:
+      configserver:
+        condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "account"
-      SPRING_CONFIG_IMPORT: "configserver:http//configserver:8071/"
-      SPRING_PROFILES_ACTIVE: default
+    extends:
+      file: common-config.yml
+      service: microservice-configserver-config
+
+#  loans:
+#    image: "eazybytes/loans:s6"
+#    container_name: loans-ms
+#    ports:
+#      - "8090:8090"
+#    depends_on:
+#      configserver:
+#        condition: service_healthy
+#    environment:
+#      SPRING_APPLICATION_NAME: "loans"
+#    extends:
+#      file: common-config.yml
+#      service: microservice-configserver-config
 
   cards:
     image: "zer008/cards:v6"
     container_name: cards-ms
     ports:
       - "8888:8888"
-    deploy:
-      resources:
-        limits:
-          memory: 700m
-    networks:
-      - zer008
+    depends_on:
+      configserver:
+        condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "cards"
-      SPRING_CONFIG_IMPORT: "configserver:http//configserver:8071/"
-      SPRING_PROFILES_ACTIVE: default
+    extends:
+      file: common-config.yml
+      service: microservice-configserver-config
 
 networks:
-  zer008:
+  eazybank:
     driver: "bridge"
