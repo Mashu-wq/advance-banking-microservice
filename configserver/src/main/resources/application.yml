@@ -1,5 +1,6 @@
 server:
   port: 8071
+
 spring:
   application:
     name: configserver
@@ -16,17 +17,21 @@ spring:
           force-pull: true
           timeout: 5
 
-  rabbitmq:
-    host: "localhost"
-    port: 5672
-    username: "guest"
-    password: "guest"
+#  rabbitmq:
+#    host: "localhost"
+#    port: 5672
+#    username: "guest"
+#    password: "guest"
 
 management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include:
+          - health
+          - info
+          - busrefresh
+          - monitor
   health:
     readiness-state:
       enabled: true
@@ -36,4 +41,3 @@ management:
     health:
       probes:
         enabled: true
-
